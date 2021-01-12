@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="https://firebasestorage.googleapis.com/v0/b/work-5ada2.appspot.com/o/img%2Ffar.ico?alt=media&token=2dfed56a-6d9b-44c9-a9ab-841aafdef78b" type="image/x-icon">
+    <title>index</title>
+</head>
+<body>
+    <script>    
+        var user = localStorage.getItem('user')
+        if(!user){
+            location.href = './login.html'
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="shortcut icon"
+      href="https://firebasestorage.googleapis.com/v0/b/work-5ada2.appspot.com/o/img%2Ffar.ico?alt=media&token=2dfed56a-6d9b-44c9-a9ab-841aafdef78b"
+      type="image/x-icon"
+    />
+    <meta
+      name="google-signin-client_id"
+      content="1018971198516-ao46toortsb6dpv8m8iv4lpevmfch7fr.apps.googleusercontent.com"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+      integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2"
+      crossorigin="anonymous"
+    />
+    <script src="https://apis.google.com/js/platform.js"></script>
+
+    <title>homepage</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #eee;
+        background-image: url("https://firebasestorage.googleapis.com/v0/b/work-5ada2.appspot.com/o/img%2Fvirus.jpg?alt=media&token=b10b306d-bbf4-40f8-97e1-67e0e0e032ab");
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+      }
+      main {
+        width: 1200px;
+        margin: 0 auto;
+        overflow: hidden;
+        background: #fff;
+      }
+      .wrap {
+        padding: 10px;
+        width: 60%;
+        margin: 0 auto;
+      }
+      .wrap input,
+      .wrap select,
+      .wrap textarea {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="app">
+      <logout></logout>
+      <h1 style="text-align: center">COVID-19</h1>
+      <p style="text-align: center">Add News</p>
+      <vlink></vlink>
+      <div class="wrap">
+        <p>title : <input type="text" v-model="newData.title" /></p>
+        <p>
+          country :
+          <select v-model="newData.country">
+            <option value="Worldwide">Worldwide</option>
+            <option
+              :value="item.Country"
+              v-for="(item,index) in options"
+              :key="index"
+            >
+              {{item.Country}}
+            </option>
+          </select>
+        </p>
+        <p>
+          content :
+          <textarea v-model="newData.content" cols="30" rows="10"></textarea>
+        </p>
+        <p><button class="btn btn-success" @click="editNew">Submit</button></p>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-ui@2.14.1/lib/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.0.0-rc.1/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-echarts@5.0.0-beta.0/dist/vue-echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.9.6/dayjs.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.1/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.1.1/firebase-firestore.js"></script>
+    <script src="./js/fb.js"></script>
+    <script src="./js/tool.js"></script>
+    <script>
+      var getURLParameters = (url) =>
+        (url.match(/([^?=&]+)(=([^&]*))/g) || []).reduce(
+          (a, v) => (
+            (a[v.slice(0, v.indexOf("="))] = v.slice(v.indexOf("=") + 1)), a
+          ),
+          {}
+        );
+
+      new Vue({
+        el: "#app",
+        data() {
+          return {
+            options: [],
+
+            id: getURLParameters(window.location.href).id,
+
+            newData: {
+              title: "",
+              country: "Worldwide",
+              content: "",
+              userName: JSON.parse(localStorage.getItem("user")).name,
+              date: "",
+            },
+          };
+        },
+        created() {
+          onLoad();
+          this.getCountries();
+          if (this.id) {
+            this.getNew();
+          }
+        },
+        methods: {
+          getCountries() {
+            fetch("https://api.covid19api.com/countries")
+              .then((res) => res.json())
+              .then((res) => {
+                var resss = res.sort((a, b) =>
+                  (a.Country || "")
+                    .toString()
+                    .localeCompare((b.Country || "").toString())
+                );
+                this.options = resss;
+              });
+          },
+          async getNew() {
+            await db
+              .collection("news")
+              .doc(this.id)
+              .get()
+              .then((data) => {
+                this.newData = {
+                  id: data.id,
+                  ...data.data(),
+                };
+              });
+          },
+          async editNew() {
+            var data = { ...this.newData };
+            data.date = dayjs().format("YYYY-MM-DD HH:mm:ss");
+            console.log("data -> :", data);
+            if (!data.title || !data.content) {
+              alert("Field can't  is empty");
+              return;
+            }
+            console.log("db -> :", db);
+
+            await db
+              .collection("news")
+              .doc(data.id)
+              .set(data)
+              .then(function () {
+                alert("posted successfully");
+                location.href = "./myNews.html";
+              })
+              .catch(function (error) {
+                console.error("Error writing document: ", error);
+              });
+          },
+        },
+        computed: {},
+      });
+    </script>
+  </body>
+</html>
